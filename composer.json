@@ -1,15 +1,20 @@
 {
-  "name": "jeyson-sr/ci4-cascade-deletion",
-  "description": "Librería recursiva de borrado en cascada para CodeIgniter 4",
+  "name": "jeyzon-sr/cascade-deletion",
+  "description": "Librería para eliminar en cascada en CodeIgniter 4",
   "type": "library",
+  "keywords": ["codeigniter", "cascade", "deletion"],
   "license": "MIT",
   "autoload": {
     "psr-4": {
-      "App\\Libraries\\": "app/Libraries/"
+      "Jhosep\\Cascade\\": "src/"
     }
   },
   "require": {
     "php": ">=7.4",
     "codeigniter4/framework": "^4.2"
+  },
+  "require-dev": {
+    "codeigniter4/codeigniter4": "^4.2",
+    "phpunit/phpunit": "^9.5"
   }
 }

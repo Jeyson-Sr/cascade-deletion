@@ -1,37 +1,41 @@
-<?php
+<?php namespace App\Libraries;
 
-namespace App\Libraries;
-
+use Config\Cascade;
 use Config\Database;
 
 class CascadeDeletion
 {
     protected $db;
-    protected $config;
+    protected $relations;
 
     public function __construct()
     {
-        $this->db     = Database::connect();
-        $this->config = require APPPATH . 'Config/Cascade.php';
+        $this->db        = Database::connect();
+        $this->relations = (new Cascade())->relations;
     }
 
-    public function delete(string $table, $id)
+    public function delete(string $table, int $id): bool
     {
-        if (!isset($this->config[$table])) {
-            return $this->db->table($table)->delete(['id' => $id]);
+        // 1. Si no hay hijos configurados, borra el registro y listo
+        if (! isset($this->relations[$table])) {
+            return (bool) $this->db->table($table)->delete(['id' => $id]);
         }
 
-        $children = $this->config[$table];
-
-        foreach ($children as $childTable => $foreignKey) {
-            $builder = $this->db->table($childTable);
-            $rows    = $builder->where($foreignKey, $id)->get()->getResult();
+        // 2. Por cada hijo, borrado recursivo
+        foreach ($this->relations[$table] as $child => $fk) {
+            $rows = $this->db
+                        ->table($child)
+                        ->select('id')
+                        ->where($fk, $id)
+                        ->get()
+                        ->getResultObject();
 
             foreach ($rows as $row) {
-                $this->delete($childTable, $row->id);
+                $this->delete($child, $row->id);
             }
         }
 
-        return $this->db->table($table)->delete(['id' => $id]);
+        // 3. Al final borramos el padre
+        return (bool) $this->db->table($table)->delete(['id' => $id]);
     }
 }
